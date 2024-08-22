@@ -6,6 +6,8 @@
 use crate::gpio::{self, Alternate, OpenDrain};
 use crate::hal::blocking::i2c::{Read, Write, WriteRead};
 use crate::pac::{DWT, I2C1, I2C2, I2C3};
+#[cfg(any(feature = "stm32f765", feature = "stm32f767", feature = "stm32f769"))]
+use crate::pac::I2C4;
 use crate::rcc::{BusClock, Clocks, Enable, RccBus, Reset};
 use fugit::HertzU32 as Hertz;
 use nb::Error::{Other, WouldBlock};
@@ -70,6 +72,17 @@ impl PinScl<I2C2> for gpio::PH4<Alternate<4, OpenDrain>> {}
 impl PinScl<I2C3> for gpio::PA8<Alternate<4, OpenDrain>> {}
 impl PinScl<I2C3> for gpio::PH7<Alternate<4, OpenDrain>> {}
 
+#[cfg(any(feature = "stm32f765", feature = "stm32f767", feature = "stm32f769"))]
+impl PinScl<I2C4> for gpio::PB6<Alternate<11, OpenDrain>> {}
+#[cfg(any(feature = "stm32f765", feature = "stm32f767", feature = "stm32f769"))]
+impl PinScl<I2C4> for gpio::PB8<Alternate<1, OpenDrain>> {}
+#[cfg(any(feature = "stm32f765", feature = "stm32f767", feature = "stm32f769"))]
+impl PinScl<I2C4> for gpio::PD12<Alternate<4, OpenDrain>> {}
+#[cfg(any(feature = "stm32f765", feature = "stm32f767", feature = "stm32f769"))]
+impl PinScl<I2C4> for gpio::PF14<Alternate<4, OpenDrain>> {}
+#[cfg(any(feature = "stm32f765", feature = "stm32f767", feature = "stm32f769"))]
+impl PinScl<I2C4> for gpio::PH11<Alternate<4, OpenDrain>> {}
+
 impl PinSda<I2C1> for gpio::PB7<Alternate<4, OpenDrain>> {}
 impl PinSda<I2C1> for gpio::PB9<Alternate<4, OpenDrain>> {}
 impl PinSda<I2C2> for gpio::PB11<Alternate<4, OpenDrain>> {}
@@ -77,6 +90,17 @@ impl PinSda<I2C2> for gpio::PF0<Alternate<4, OpenDrain>> {}
 impl PinSda<I2C2> for gpio::PH5<Alternate<4, OpenDrain>> {}
 impl PinSda<I2C3> for gpio::PC9<Alternate<4, OpenDrain>> {}
 impl PinSda<I2C3> for gpio::PH8<Alternate<4, OpenDrain>> {}
+
+#[cfg(any(feature = "stm32f765", feature = "stm32f767", feature = "stm32f769"))]
+impl PinSda<I2C4> for gpio::PB7<Alternate<11, OpenDrain>> {}
+#[cfg(any(feature = "stm32f765", feature = "stm32f767", feature = "stm32f769"))]
+impl PinSda<I2C4> for gpio::PB9<Alternate<1, OpenDrain>> {}
+#[cfg(any(feature = "stm32f765", feature = "stm32f767", feature = "stm32f769"))]
+impl PinSda<I2C4> for gpio::PD13<Alternate<4, OpenDrain>> {}
+#[cfg(any(feature = "stm32f765", feature = "stm32f767", feature = "stm32f769"))]
+impl PinSda<I2C4> for gpio::PF15<Alternate<4, OpenDrain>> {}
+#[cfg(any(feature = "stm32f765", feature = "stm32f767", feature = "stm32f769"))]
+impl PinSda<I2C4> for gpio::PH12<Alternate<4, OpenDrain>> {}
 
 /// I2C peripheral operating in master mode
 pub struct I2c<I2C, SCL, SDA> {
@@ -194,6 +218,43 @@ impl<SCL, SDA> BlockingI2c<I2C3, SCL, SDA> {
         SDA: PinSda<I2C3>,
     {
         BlockingI2c::_i2c3(i2c, pins, mode, clocks, apb, data_timeout_us)
+    }
+}
+
+#[cfg(any(feature = "stm32f765", feature = "stm32f767", feature = "stm32f769"))]
+impl<SCL, SDA> I2c<I2C4, SCL, SDA> {
+    /// Creates a generic I2C3 object.
+    pub fn i2c4(
+        i2c: I2C4,
+        pins: (SCL, SDA),
+        mode: Mode,
+        clocks: &Clocks,
+        apb: &mut <I2C4 as RccBus>::Bus,
+    ) -> Self
+    where
+        SCL: PinScl<I2C4>,
+        SDA: PinSda<I2C4>,
+    {
+        I2c::_i2c4(i2c, pins, mode, clocks, apb)
+    }
+}
+
+#[cfg(any(feature = "stm32f765", feature = "stm32f767", feature = "stm32f769"))]
+impl<SCL, SDA> BlockingI2c<I2C4, SCL, SDA> {
+    /// Creates a blocking I2C4 object using the embedded-hal `BlockingI2c` trait.
+    pub fn i2c4(
+        i2c: I2C4,
+        pins: (SCL, SDA),
+        mode: Mode,
+        clocks: &Clocks,
+        apb: &mut <I2C4 as RccBus>::Bus,
+        data_timeout_us: u32,
+    ) -> Self
+    where
+        SCL: PinScl<I2C4>,
+        SDA: PinSda<I2C4>,
+    {
+        BlockingI2c::_i2c4(i2c, pins, mode, clocks, apb, data_timeout_us)
     }
 }
 
@@ -652,4 +713,9 @@ hal! {
     I2C1: (_i2c1),
     I2C2: (_i2c2),
     I2C3: (_i2c3),
+}
+
+#[cfg(any(feature = "stm32f765", feature = "stm32f767", feature = "stm32f769"))]
+hal! {
+    I2C4: (_i2c4),
 }
